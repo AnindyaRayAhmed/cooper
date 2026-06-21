@@ -118,13 +118,18 @@ async function generateGeminiInsights(
     cache: "no-store",
   });
 
+  console.log(`[Gemini Debug] Gemini response status: ${response.status} ${response.statusText}`);
+
   if (!response.ok) {
     const message = await response.text();
     throw new Error(`Gemini request failed: ${response.status} ${message}`);
   }
 
   const payload = (await response.json()) as unknown;
-  const parsed = parseInsightsText(extractGeminiText(payload));
+  const rawText = extractGeminiText(payload);
+  const parsed = parseInsightsText(rawText);
+  const parsingSuccess = !!parsed;
+  console.log(`[Gemini Debug] Parsing success: ${parsingSuccess}`);
 
   if (!parsed) {
     throw new Error("Gemini returned an invalid insights payload.");
@@ -154,9 +159,12 @@ export async function POST(request: Request) {
 
   const sanitizedBody = sanitizeInsightsRequest(body);
   const apiKey = process.env.GEMINI_API_KEY;
+  const apiKeyExists = !!apiKey;
+  console.log(`[Gemini Debug] API key exists: ${apiKeyExists}`);
 
   if (!apiKey) {
     console.warn("Configuration warning: GEMINI_API_KEY is not configured.");
+    console.log("[Gemini Debug] Triggering fallback. Reason: GEMINI_API_KEY is not configured.");
     return NextResponse.json(
       buildFallbackInsights(
         sanitizedBody,
@@ -170,6 +178,9 @@ export async function POST(request: Request) {
     return NextResponse.json(insights);
   } catch (error) {
     console.error("Gemini insights generation failed:", error);
+    const rawErrorMsg = error instanceof Error ? error.message : String(error);
+    const safeErrorMsg = apiKey ? rawErrorMsg.replace(new RegExp(apiKey, "g"), "[REDACTED_API_KEY]") : rawErrorMsg;
+    console.log(`[Gemini Debug] Triggering fallback. Reason: ${safeErrorMsg}`);
     return NextResponse.json(
       buildFallbackInsights(
         sanitizedBody,
