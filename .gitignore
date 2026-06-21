@@ -6,3 +6,4 @@ npm-debug.log*
 *.stdout.log
 *.stderr.log
 *.tsbuildinfo
+.pnpm-store
