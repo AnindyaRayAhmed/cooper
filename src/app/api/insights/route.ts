@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { buildFallbackInsights, parseInsightsText } from "@/lib/insights";
 import type { InsightsRequest, InsightsResponse } from "@/types";
 
-const MODEL = "gemini-2.5-flash";
+const MODEL = "gemini-3.5-flash";
 const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
 function isInsightsRequest(value: unknown): value is InsightsRequest {
@@ -83,9 +83,6 @@ function geminiPayload(input: InsightsRequest) {
     ],
     generationConfig: {
       maxOutputTokens: 220,
-      thinkingConfig: {
-        thinkingLevel: "low",
-      },
     },
   };
 }
@@ -165,6 +162,7 @@ export async function POST(request: Request) {
   if (!apiKey) {
     console.warn("Configuration warning: GEMINI_API_KEY is not configured.");
     console.log("[Gemini Debug] Triggering fallback. Reason: GEMINI_API_KEY is not configured.");
+    console.log("[Gemini Audit] Fallback triggered.");
     return NextResponse.json(
       buildFallbackInsights(
         sanitizedBody,
@@ -175,12 +173,14 @@ export async function POST(request: Request) {
 
   try {
     const insights = await generateGeminiInsights(sanitizedBody, apiKey);
+    console.log("[Gemini Audit] Live Gemini generation succeeded.");
     return NextResponse.json(insights);
   } catch (error) {
     console.error("Gemini insights generation failed:", error);
     const rawErrorMsg = error instanceof Error ? error.message : String(error);
     const safeErrorMsg = apiKey ? rawErrorMsg.replace(new RegExp(apiKey, "g"), "[REDACTED_API_KEY]") : rawErrorMsg;
     console.log(`[Gemini Debug] Triggering fallback. Reason: ${safeErrorMsg}`);
+    console.log("[Gemini Audit] Fallback triggered.");
     return NextResponse.json(
       buildFallbackInsights(
         sanitizedBody,
