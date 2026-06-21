@@ -125,6 +125,7 @@ async function generateGeminiInsights(
 
   const payload = (await response.json()) as unknown;
   const rawText = extractGeminiText(payload);
+  console.log(`[Gemini Debug] Raw Gemini text response: ${rawText}`);
   const parsed = parseInsightsText(rawText);
   const parsingSuccess = !!parsed;
   console.log(`[Gemini Debug] Parsing success: ${parsingSuccess}`);

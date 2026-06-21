@@ -66,13 +66,26 @@ export function buildFallbackInsights(
 
 export function parseInsightsText(text: string): Omit<InsightsResponse, "source" | "error"> | null {
   const normalized = text.trim();
-  const fenced = normalized.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-  const jsonCandidate = fenced?.[1] ?? normalized;
+
+  // Find the outer JSON boundaries to isolate JSON from any conversational preambles/fences
+  const jsonStart = normalized.indexOf("{");
+  const jsonEnd = normalized.lastIndexOf("}");
+  if (jsonStart === -1 || jsonEnd === -1 || jsonEnd <= jsonStart) {
+    return null;
+  }
+
+  const jsonCandidate = normalized.slice(jsonStart, jsonEnd + 1);
 
   try {
-    const parsed = JSON.parse(jsonCandidate) as Partial<InsightsResponse>;
+    // Strip trailing commas before brackets/braces to prevent JSON.parse failures
+    const cleanedJson = jsonCandidate.replace(/,\s*([\]}])/g, "$1");
+    const parsed = JSON.parse(cleanedJson) as Partial<InsightsResponse>;
+    
     const recommendations = Array.isArray(parsed.recommendations)
-      ? parsed.recommendations.filter((item): item is string => typeof item === "string").slice(0, 3)
+      ? parsed.recommendations
+          .filter((item): item is string => typeof item === "string")
+          .map((item) => item.trim())
+          .slice(0, 3)
       : [];
 
     if (
@@ -85,8 +98,8 @@ export function parseInsightsText(text: string): Omit<InsightsResponse, "source"
 
     return {
       recommendations,
-      motivation: parsed.motivation,
-      goal: parsed.goal,
+      motivation: parsed.motivation.trim(),
+      goal: parsed.goal.trim(),
     };
   } catch {
     return null;
