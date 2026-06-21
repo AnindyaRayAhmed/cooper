@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { buildFallbackInsights, parseInsightsText } from "@/lib/insights";
 import type { InsightsRequest, InsightsResponse } from "@/types";
 
-const MODEL = "gemini-3.5-flash";
+const MODEL = "gemini-2.5-flash";
 const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
 function isInsightsRequest(value: unknown): value is InsightsRequest {
@@ -105,6 +105,7 @@ async function generateGeminiInsights(
   input: InsightsRequest,
   apiKey: string,
 ): Promise<InsightsResponse> {
+  console.log(`[Gemini Audit] Requesting insights with model: ${MODEL}`);
   const response = await fetch(ENDPOINT, {
     method: "POST",
     headers: {
