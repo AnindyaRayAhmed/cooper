@@ -9,12 +9,48 @@ function isInsightsRequest(value: unknown): value is InsightsRequest {
   if (!value || typeof value !== "object") return false;
 
   const input = value as Partial<InsightsRequest>;
-  return (
+  
+  const hasValidStreak =
     typeof input.streak === "number" &&
+    Number.isInteger(input.streak) &&
+    input.streak >= 0 &&
+    input.streak <= 100000;
+
+  const hasValidCarbonScore =
     typeof input.carbonScore === "number" &&
+    input.carbonScore >= 0 &&
+    input.carbonScore <= 100;
+
+  const hasValidCategories =
     Array.isArray(input.highestImpactCategories) &&
-    Array.isArray(input.dailyHabits)
-  );
+    input.highestImpactCategories.length <= 10 &&
+    input.highestImpactCategories.every(
+      (item) => typeof item === "string" && item.length <= 100
+    );
+
+  const hasValidHabits =
+    Array.isArray(input.dailyHabits) &&
+    input.dailyHabits.length <= 30 &&
+    input.dailyHabits.every(
+      (item) => typeof item === "string" && item.length <= 200
+    );
+
+  return hasValidStreak && hasValidCarbonScore && hasValidCategories && hasValidHabits;
+}
+
+function sanitizeInsightsRequest(input: InsightsRequest): InsightsRequest {
+  const sanitize = (str: string) =>
+    str
+      .replace(/<[^>]*>/g, "") // Strip simple HTML tags
+      .replace(/[\x00-\x1F\x7F-\x9F]/g, "") // Strip control characters
+      .trim();
+
+  return {
+    streak: input.streak,
+    carbonScore: input.carbonScore,
+    highestImpactCategories: input.highestImpactCategories.map(sanitize),
+    dailyHabits: input.dailyHabits.map(sanitize),
+  };
 }
 
 function promptForInsights(input: InsightsRequest) {
@@ -111,23 +147,34 @@ export async function POST(request: Request) {
 
   if (!isInsightsRequest(body)) {
     return NextResponse.json(
-      { error: "Insights payload is incomplete." },
+      { error: "Insights payload is incomplete or invalid." },
       { status: 400 },
     );
   }
 
+  const sanitizedBody = sanitizeInsightsRequest(body);
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    return NextResponse.json(buildFallbackInsights(body, "GEMINI_API_KEY is not configured."));
+    console.warn("Configuration warning: GEMINI_API_KEY is not configured.");
+    return NextResponse.json(
+      buildFallbackInsights(
+        sanitizedBody,
+        "Gemini service is not configured. Local fallback guidance used."
+      )
+    );
   }
 
   try {
-    const insights = await generateGeminiInsights(body, apiKey);
+    const insights = await generateGeminiInsights(sanitizedBody, apiKey);
     return NextResponse.json(insights);
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Gemini is unavailable right now.";
-    return NextResponse.json(buildFallbackInsights(body, message));
+    console.error("Gemini insights generation failed:", error);
+    return NextResponse.json(
+      buildFallbackInsights(
+        sanitizedBody,
+        "Gemini is unavailable right now. Local fallback guidance used."
+      )
+    );
   }
 }
