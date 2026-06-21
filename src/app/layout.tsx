@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import "./globals.css";
 import { CooperProvider } from "@/context/cooper-context";
 
@@ -25,9 +26,14 @@ export default function RootLayout({
                   href="/"
                   className="flex items-center gap-3 font-serif text-2xl font-semibold tracking-tight text-[var(--charcoal)] transition-transform duration-300 hover:translate-y-[-1px]"
                 >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] bg-white/80 text-base font-bold shadow-[0_8px_20px_rgba(55,61,52,0.06)]">
-                    C
-                  </span>
+                  <Image
+                    src="/favicon.svg"
+                    alt=""
+                    width={40}
+                    height={40}
+                    className="h-10 w-10 rounded-full border border-[var(--border)] bg-white/80 shadow-[0_8px_20px_rgba(55,61,52,0.06)]"
+                    priority
+                  />
                   Cooper.
                 </Link>
                 <div className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-white/70 p-1 shadow-[0_10px_30px_rgba(55,61,52,0.06)]">
