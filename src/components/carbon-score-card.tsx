@@ -29,6 +29,7 @@ export function CarbonScoreCard() {
           ) : (
             <div
               className="pulse-soft mt-4 h-20 rounded-3xl bg-[var(--surface-strong)]"
+              role="status"
               aria-label="Loading carbon score"
             />
           )}

@@ -52,7 +52,14 @@ export function CheckInForm() {
             </span>
             <span>{Math.round(progress)}%</span>
           </div>
-          <div className="h-2.5 overflow-hidden rounded-full bg-white/80">
+          <div
+            className="h-2.5 overflow-hidden rounded-full bg-white/80"
+            role="progressbar"
+            aria-valuenow={Math.round(progress)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label="Check-in progress"
+          >
             <div
               className="h-full rounded-full bg-[linear-gradient(90deg,var(--olive),var(--sage-deep))] transition-[width] duration-500 ease-out"
               style={{ width: `${progress}%` }}
@@ -60,7 +67,7 @@ export function CheckInForm() {
           </div>
         </div>
 
-        <div key={question.id} className="fade-up">
+        <div key={question.id} className="fade-up" role="status" aria-live="polite">
           <p className="eyebrow sm:text-sm">{question.hint}</p>
           <h2 className="mt-3 font-serif text-3xl leading-tight tracking-tight sm:text-4xl">
             {question.prompt}

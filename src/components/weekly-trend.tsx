@@ -47,16 +47,18 @@ export function WeeklyTrend() {
           className="mt-6 rounded-[1.75rem] bg-[rgba(255,253,249,0.7)] p-4 sm:p-5"
           aria-label="Seven day sustainability score chart"
         >
-          <div className="flex h-52 items-end gap-2 sm:gap-3">
+          <div className="flex h-52 items-end gap-2 sm:gap-3" role="group" aria-label="Seven day score history chart">
             {days.map((day) => (
               <div
                 className="flex h-full min-w-0 flex-1 flex-col justify-end gap-2 text-center"
                 key={day.key}
+                role="group"
+                aria-label={`${day.label}: score ${day.score || 0}${day.sample ? " (sample data)" : ""}`}
               >
-                <span className="text-[10px] font-extrabold sm:text-xs">
+                <span className="text-[10px] font-extrabold sm:text-xs" aria-hidden="true">
                   {day.score || "-"}
                 </span>
-                <div className="rounded-[1.25rem] bg-[var(--surface-strong)] px-1.5 pt-1.5">
+                <div className="rounded-[1.25rem] bg-[var(--surface-strong)] px-1.5 pt-1.5" aria-hidden="true">
                   <div
                     className={`min-h-3 rounded-[1rem] transition-[height] duration-500 ${
                       day.sample ? "bg-[var(--sage)]/55" : "bg-[var(--sage-deep)]"
@@ -64,7 +66,7 @@ export function WeeklyTrend() {
                     style={{ height: `${Math.max(day.score, 6)}%` }}
                   />
                 </div>
-                <span className="truncate text-[10px] text-[var(--muted)] sm:text-xs">
+                <span className="truncate text-[10px] text-[var(--muted)] sm:text-xs" aria-hidden="true">
                   {day.label}
                 </span>
               </div>
@@ -79,6 +81,7 @@ export function WeeklyTrend() {
       ) : (
         <div
           className="pulse-soft mt-6 h-52 rounded-[1.75rem] bg-[var(--surface-strong)]"
+          role="status"
           aria-label="Loading weekly trend"
         />
       )}

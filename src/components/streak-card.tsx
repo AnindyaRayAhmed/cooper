@@ -27,6 +27,7 @@ export function StreakCard() {
           ) : (
             <div
               className="pulse-soft mt-4 h-24 rounded-3xl bg-white/80"
+              role="status"
               aria-label="Loading streak"
             />
           )}

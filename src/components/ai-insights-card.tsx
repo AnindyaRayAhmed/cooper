@@ -52,6 +52,7 @@ function InsightContent({
     return (
       <div
         className="mt-5 rounded-[1.5rem] bg-[var(--surface-strong)] p-5"
+        role="status"
         aria-label="Loading insights"
       >
         <div className="pulse-soft h-4 w-32 rounded-full bg-white/90" />
@@ -121,6 +122,7 @@ function InsightBody({
     return (
       <div
         className="mt-5 rounded-[1.5rem] bg-[var(--surface-strong)] p-5"
+        role="status"
         aria-label="Loading insights"
       >
         <div className="pulse-soft h-4 w-32 rounded-full bg-white/90" />
